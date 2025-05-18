@@ -1,3 +1,6 @@
+#include <CPU.hpp>
+
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -10,5 +13,26 @@ int main(int argc, char *argv[]) {
     std::string rom_path = argv[1];
 
     std::cout << "Rom path: " << rom_path << "\n";
+
+    std::ifstream rom(rom_path, std::ios::binary);
+
+    if (!rom.is_open()) {
+        std::cerr << "Failed to open rom: " << rom_path << "\n";
+        return 1;
+    }
+
+    mos6502::mem_t memory = {0};
+    rom.read(reinterpret_cast<char *>(&memory[0]), 0x10000);
+
+    mos6502::CPU cpu(memory);
+    cpu.reset();
+
+    for (int i = 0; i < 12; i++) {
+        mos6502::BYTE opcode = cpu.fetch_opcode();
+        cpu.decode(opcode);
+    }
+
+    rom.close();
+
     return 9;
 }
