@@ -8,7 +8,10 @@
 
 using namespace mos6502;
 
-CPU::CPU(mem_t &memory) : memory(memory) {}
+CPU::CPU(mem_t &memory) : memory(memory) {
+    init_lookup_table();
+    init_dispatch_table();
+}
 
 void CPU::reset() {
     pc = memory[0xfffc] | (memory[0xfffd] << 8);
@@ -19,8 +22,8 @@ void CPU::reset() {
     x = y = 0;
 }
 
-void CPU::init_opcode_table() {
-    table = {
+void CPU::init_lookup_table() {
+    lookup_table = {
         Instruction_info{INSTRUCTION::BRK, ADDRESSING_MODE::IMPLICIT},
         Instruction_info{INSTRUCTION::ORA, ADDRESSING_MODE::INDIRECT_X},
         Instruction_info{INSTRUCTION::INVALID, ADDRESSING_MODE::INVALID},
@@ -280,13 +283,187 @@ void CPU::init_opcode_table() {
     };
 }
 
+void CPU::init_dispatch_table() {
+    dispatch_table[INSTRUCTION::ADC] = [this](ADDRESSING_MODE m, WORD o) {
+        ADC(m, o);
+    };
+    dispatch_table[INSTRUCTION::AND] = [this](ADDRESSING_MODE m, WORD o) {
+        AND(m, o);
+    };
+    dispatch_table[INSTRUCTION::ASL] = [this](ADDRESSING_MODE m, WORD o) {
+        ASL(m, o);
+    };
+    dispatch_table[INSTRUCTION::BCC] = [this](ADDRESSING_MODE m, WORD o) {
+        BCC(m, o);
+    };
+    dispatch_table[INSTRUCTION::BCS] = [this](ADDRESSING_MODE m, WORD o) {
+        BCS(m, o);
+    };
+    dispatch_table[INSTRUCTION::BEQ] = [this](ADDRESSING_MODE m, WORD o) {
+        BEQ(m, o);
+    };
+    dispatch_table[INSTRUCTION::BIT] = [this](ADDRESSING_MODE m, WORD o) {
+        BIT(m, o);
+    };
+    dispatch_table[INSTRUCTION::BMI] = [this](ADDRESSING_MODE m, WORD o) {
+        BMI(m, o);
+    };
+    dispatch_table[INSTRUCTION::BNE] = [this](ADDRESSING_MODE m, WORD o) {
+        BNE(m, o);
+    };
+    dispatch_table[INSTRUCTION::BPL] = [this](ADDRESSING_MODE m, WORD o) {
+        BPL(m, o);
+    };
+    dispatch_table[INSTRUCTION::BRK] = [this](ADDRESSING_MODE m, WORD o) {
+        BRK(m, o);
+    };
+    dispatch_table[INSTRUCTION::BVC] = [this](ADDRESSING_MODE m, WORD o) {
+        BVC(m, o);
+    };
+    dispatch_table[INSTRUCTION::BVS] = [this](ADDRESSING_MODE m, WORD o) {
+        BVS(m, o);
+    };
+    dispatch_table[INSTRUCTION::CLC] = [this](ADDRESSING_MODE m, WORD o) {
+        CLC(m, o);
+    };
+    dispatch_table[INSTRUCTION::CLD] = [this](ADDRESSING_MODE m, WORD o) {
+        CLD(m, o);
+    };
+    dispatch_table[INSTRUCTION::CLI] = [this](ADDRESSING_MODE m, WORD o) {
+        CLI(m, o);
+    };
+    dispatch_table[INSTRUCTION::CLV] = [this](ADDRESSING_MODE m, WORD o) {
+        CLV(m, o);
+    };
+    dispatch_table[INSTRUCTION::CMP] = [this](ADDRESSING_MODE m, WORD o) {
+        CMP(m, o);
+    };
+    dispatch_table[INSTRUCTION::CPX] = [this](ADDRESSING_MODE m, WORD o) {
+        CPX(m, o);
+    };
+    dispatch_table[INSTRUCTION::CPY] = [this](ADDRESSING_MODE m, WORD o) {
+        CPY(m, o);
+    };
+    dispatch_table[INSTRUCTION::DEC] = [this](ADDRESSING_MODE m, WORD o) {
+        DEC(m, o);
+    };
+    dispatch_table[INSTRUCTION::DEX] = [this](ADDRESSING_MODE m, WORD o) {
+        DEX(m, o);
+    };
+    dispatch_table[INSTRUCTION::DEY] = [this](ADDRESSING_MODE m, WORD o) {
+        DEY(m, o);
+    };
+    dispatch_table[INSTRUCTION::EOR] = [this](ADDRESSING_MODE m, WORD o) {
+        EOR(m, o);
+    };
+    dispatch_table[INSTRUCTION::INC] = [this](ADDRESSING_MODE m, WORD o) {
+        INC(m, o);
+    };
+    dispatch_table[INSTRUCTION::INX] = [this](ADDRESSING_MODE m, WORD o) {
+        INX(m, o);
+    };
+    dispatch_table[INSTRUCTION::INY] = [this](ADDRESSING_MODE m, WORD o) {
+        INY(m, o);
+    };
+    dispatch_table[INSTRUCTION::JMP] = [this](ADDRESSING_MODE m, WORD o) {
+        JMP(m, o);
+    };
+    dispatch_table[INSTRUCTION::JSR] = [this](ADDRESSING_MODE m, WORD o) {
+        JSR(m, o);
+    };
+    dispatch_table[INSTRUCTION::LDA] = [this](ADDRESSING_MODE m, WORD o) {
+        LDA(m, o);
+    };
+    dispatch_table[INSTRUCTION::LDX] = [this](ADDRESSING_MODE m, WORD o) {
+        LDX(m, o);
+    };
+    dispatch_table[INSTRUCTION::LDY] = [this](ADDRESSING_MODE m, WORD o) {
+        LDY(m, o);
+    };
+    dispatch_table[INSTRUCTION::LSR] = [this](ADDRESSING_MODE m, WORD o) {
+        LSR(m, o);
+    };
+    dispatch_table[INSTRUCTION::NOP] = [this](ADDRESSING_MODE m, WORD o) {
+        NOP(m, o);
+    };
+    dispatch_table[INSTRUCTION::ORA] = [this](ADDRESSING_MODE m, WORD o) {
+        ORA(m, o);
+    };
+    dispatch_table[INSTRUCTION::PHA] = [this](ADDRESSING_MODE m, WORD o) {
+        PHA(m, o);
+    };
+    dispatch_table[INSTRUCTION::PHP] = [this](ADDRESSING_MODE m, WORD o) {
+        PHP(m, o);
+    };
+    dispatch_table[INSTRUCTION::PLA] = [this](ADDRESSING_MODE m, WORD o) {
+        PLA(m, o);
+    };
+    dispatch_table[INSTRUCTION::PLP] = [this](ADDRESSING_MODE m, WORD o) {
+        PLP(m, o);
+    };
+    dispatch_table[INSTRUCTION::ROL] = [this](ADDRESSING_MODE m, WORD o) {
+        ROL(m, o);
+    };
+    dispatch_table[INSTRUCTION::ROR] = [this](ADDRESSING_MODE m, WORD o) {
+        ROR(m, o);
+    };
+    dispatch_table[INSTRUCTION::RTI] = [this](ADDRESSING_MODE m, WORD o) {
+        RTI(m, o);
+    };
+    dispatch_table[INSTRUCTION::RTS] = [this](ADDRESSING_MODE m, WORD o) {
+        RTS(m, o);
+    };
+    dispatch_table[INSTRUCTION::SBC] = [this](ADDRESSING_MODE m, WORD o) {
+        SBC(m, o);
+    };
+    dispatch_table[INSTRUCTION::SEC] = [this](ADDRESSING_MODE m, WORD o) {
+        SEC(m, o);
+    };
+    dispatch_table[INSTRUCTION::SED] = [this](ADDRESSING_MODE m, WORD o) {
+        SED(m, o);
+    };
+    dispatch_table[INSTRUCTION::SEI] = [this](ADDRESSING_MODE m, WORD o) {
+        SEI(m, o);
+    };
+    dispatch_table[INSTRUCTION::STA] = [this](ADDRESSING_MODE m, WORD o) {
+        STA(m, o);
+    };
+    dispatch_table[INSTRUCTION::STX] = [this](ADDRESSING_MODE m, WORD o) {
+        STX(m, o);
+    };
+    dispatch_table[INSTRUCTION::STY] = [this](ADDRESSING_MODE m, WORD o) {
+        STY(m, o);
+    };
+    dispatch_table[INSTRUCTION::TAX] = [this](ADDRESSING_MODE m, WORD o) {
+        TAX(m, o);
+    };
+    dispatch_table[INSTRUCTION::TAY] = [this](ADDRESSING_MODE m, WORD o) {
+        TAY(m, o);
+    };
+    dispatch_table[INSTRUCTION::TSX] = [this](ADDRESSING_MODE m, WORD o) {
+        TSX(m, o);
+    };
+    dispatch_table[INSTRUCTION::TXA] = [this](ADDRESSING_MODE m, WORD o) {
+        TXA(m, o);
+    };
+    dispatch_table[INSTRUCTION::TXS] = [this](ADDRESSING_MODE m, WORD o) {
+        TXS(m, o);
+    };
+    dispatch_table[INSTRUCTION::TYA] = [this](ADDRESSING_MODE m, WORD o) {
+        TYA(m, o);
+    };
+    dispatch_table[INSTRUCTION::INVALID] = [this](ADDRESSING_MODE m, WORD o) {
+        INVALID(m, o);
+    };
+}
+
 BYTE CPU::fetch_opcode() {
     BYTE opcode = memory[pc];
     pc++;
     return opcode;
 }
 
-Instruction_info CPU::decode(BYTE opcode) { return table[opcode]; }
+Instruction_info CPU::decode(BYTE opcode) { return lookup_table[opcode]; }
 
 WORD CPU::fetch_operands(ADDRESSING_MODE mode) {
     WORD operand = 0x0000;
@@ -568,19 +745,298 @@ std::string print_info(INSTRUCTION ins, ADDRESSING_MODE mode) {
 }
 
 void CPU::execute(BYTE opcode) {
-    std::stringstream ss;
-
-    ss << "0x" << std::uppercase << std::setw(4) << std::setfill('0')
-       << std::hex << static_cast<int>(pc) << std::dec << ":\t";
+    WORD orig_pc = pc - 1;
 
     auto [ins, mode] = decode(opcode);
     WORD operand = fetch_operands(mode);
 
+    instruction_t to_execute = dispatch_table[ins];
+
+    to_execute(mode, operand);
+
+    std::stringstream ss;
+    ss << "0x" << std::uppercase << std::setw(4) << std::setfill('0')
+       << std::hex << static_cast<int>(orig_pc) << std::dec << ":\t";
     ss << "0x" << std::setw(2) << std::setfill('0') << std::hex
        << static_cast<int>(opcode) << std::dec << "\t";
     ss << "0x" << std::setw(4) << std::setfill('0') << std::hex
        << static_cast<int>(operand) << std::dec << "\t";
     ss << print_info(ins, mode);
-
     std::cerr << ss.str() << "\n";
+}
+
+void CPU::ADC(ADDRESSING_MODE mode, WORD operand) {
+    BYTE rhs = 0x00;
+    switch (mode) {
+    case ADDRESSING_MODE::IMMEDIATE: {
+        rhs = operand & 0xff;
+    } break;
+    case ADDRESSING_MODE::ZEROPAGE: {
+        rhs = memory[operand];
+    } break;
+    case ADDRESSING_MODE::ZEROPAGE_X: {
+        rhs = memory[operand + x];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE: {
+        rhs = memory[operand];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE_X: {
+        rhs = memory[operand + x];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE_Y: {
+        rhs = memory[operand + y];
+    } break;
+    case ADDRESSING_MODE::INDIRECT_X: {
+        WORD addr = (operand + x) & 0xff;
+        addr = memory[addr] | (memory[addr + 1] << 8);
+        rhs = memory[addr];
+    } break;
+    case ADDRESSING_MODE::INDIRECT_Y: {
+        WORD addr = operand;
+        addr = memory[addr] | (memory[addr + 1] << 8);
+        addr = addr + y;
+        rhs = memory[addr];
+    } break;
+    case ADDRESSING_MODE::ACCUMULATOR:
+    case ADDRESSING_MODE::IMPLICIT:
+    case ADDRESSING_MODE::RELATIVE:
+    case ADDRESSING_MODE::INVALID: {
+        // TODO: add assert
+    } break;
+    default:
+        break;
+    }
+    WORD result = rhs + a + c;
+    BYTE new_a = result & 0xff;
+
+    c = (result > 0xff) ? 1 : 0;
+    z = new_a == 0 ? 1 : 0;
+    v = (((a ^ new_a) & (rhs ^ new_a)) & 0x80) >> 7;
+    n = (new_a >> 7) & 0x1;
+
+    a = new_a;
+}
+
+void CPU::AND(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::ASL(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BCC(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BCS(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BEQ(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BIT(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BMI(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BNE(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BPL(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BRK(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BVC(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::BVS(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::CLC(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::CLD(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::CLI(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::CLV(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::CMP(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::CPX(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::CPY(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::DEC(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::DEX(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::DEY(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::EOR(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::INC(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::INX(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::INY(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::JMP(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::JSR(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::LDA(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::LDX(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::LDY(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::LSR(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::NOP(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::ORA(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::PHA(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::PHP(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::PLA(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::PLP(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::ROL(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::ROR(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::RTI(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::RTS(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::SBC(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::SEC(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::SED(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::SEI(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::STA(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::STX(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::STY(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::TAX(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::TAY(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::TSX(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::TXA(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::TXS(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::TYA(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
+}
+
+void CPU::INVALID(ADDRESSING_MODE mode, WORD operand) {
+    std::cerr << "Not Implemented\n";
 }

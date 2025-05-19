@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 
 namespace mos6502 {
 using mem_t = std::array<uint8_t, 0x10000>;
@@ -91,4 +92,6 @@ struct Instruction_info {
     INSTRUCTION ins;
     ADDRESSING_MODE mode;
 };
+
+using instruction_t = std::function<void(ADDRESSING_MODE, WORD)>;
 } // namespace mos6502
