@@ -8,6 +8,7 @@
 
 namespace mos6502 {
 class CPU {
+  public:
     // A: Accumulator
     BYTE a;
 
@@ -31,6 +32,7 @@ class CPU {
     BYTE x;
     BYTE y;
 
+  private:
     // Ref to memory
     mem_t &memory;
 
@@ -105,6 +107,8 @@ class CPU {
     CPU(mem_t &memory);
 
     void reset();
+
+    BYTE get_p();
 
     BYTE fetch_opcode();
     Instruction_info decode(BYTE opcode);

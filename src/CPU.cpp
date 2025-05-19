@@ -457,6 +457,12 @@ void CPU::init_dispatch_table() {
     };
 }
 
+BYTE CPU::get_p() {
+    BYTE p = (n << 7) | (v << 6) | (u << 5) | (b << 4) | (d << 3) | (i << 2) |
+             (z << 1) | c;
+    return p;
+}
+
 BYTE CPU::fetch_opcode() {
     BYTE opcode = memory[pc];
     pc++;
@@ -762,7 +768,7 @@ void CPU::execute(BYTE opcode) {
     ss << "0x" << std::setw(4) << std::setfill('0') << std::hex
        << static_cast<int>(operand) << std::dec << "\t";
     ss << print_info(ins, mode);
-    std::cerr << ss.str() << "\n";
+    // std::cerr << ss.str() << "\n";
 }
 
 void CPU::ADC(ADDRESSING_MODE mode, WORD operand) {
