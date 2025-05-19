@@ -1,4 +1,5 @@
 #include <CPU.hpp>
+#include <Types.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -26,10 +27,11 @@ int main(int argc, char *argv[]) {
 
     mos6502::CPU cpu(memory);
     cpu.reset();
+    cpu.init_opcode_table();
 
     for (int i = 0; i < 12; i++) {
         mos6502::BYTE opcode = cpu.fetch_opcode();
-        cpu.decode(opcode);
+        cpu.execute(opcode);
     }
 
     rom.close();

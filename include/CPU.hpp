@@ -1,16 +1,11 @@
 // CPU.hpp
 #pragma once
 
+#include <Types.hpp>
+
 #include <array>
-#include <cstdint>
 
 namespace mos6502 {
-
-using mem_t = std::array<uint8_t, 0x10000>;
-
-using BYTE = uint8_t;
-using WORD = uint16_t;
-
 class CPU {
     // A: Accumulator
     BYTE a;
@@ -38,17 +33,21 @@ class CPU {
     // Ref to memory
     mem_t &memory;
 
+    // Opcode lookup table
+    std::array<Instruction_info, 0x100> table;
+
+    void LDA(ADDRESSING_MODE mode, WORD operand);
+
   public:
     CPU(mem_t &memory);
 
     void reset();
+    void init_opcode_table();
 
     BYTE fetch_opcode();
+    Instruction_info decode(BYTE opcode);
+    WORD fetch_operands(ADDRESSING_MODE mode);
 
-    void decode(BYTE opcode);
-
-    void fetch_operands();
-
-    void execute();
+    void execute(BYTE opcode);
 };
 } // namespace mos6502
