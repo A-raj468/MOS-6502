@@ -527,7 +527,7 @@ WORD CPU::fetch_operands(ADDRESSING_MODE mode) {
     return operand;
 }
 
-std::string print_info(INSTRUCTION ins, ADDRESSING_MODE mode) {
+static std::string print_info(INSTRUCTION ins, ADDRESSING_MODE mode) {
     std::string i = "INVALID";
     switch (ins) {
     case INSTRUCTION::ADC: {
