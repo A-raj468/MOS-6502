@@ -59,6 +59,7 @@ STA $21
 STA $a140
 ADC ($20),Y
      */
+
     // ADC #$05
     memory[pc++] = 0x69;
     memory[pc++] = 0x05;
@@ -135,5 +136,149 @@ ADC ($20),Y
         EXPECT_EQ(cpu.a, A[i]);
         BYTE p = cpu.get_p();
         EXPECT_EQ(p & 0xc3, P[i] & 0xc3);
+    }
+}
+
+TEST(TEST_INSTRUCTIONS, AND) {
+    mem_t memory;
+
+    WORD start = 0x8000;
+    memory[0xfffc] = start & 0xff;
+    memory[0xfffd] = (start >> 8) & 0xff;
+
+    WORD pc = start;
+
+    /* Assembly to be tested
+LDX #$04
+LDY #$a0
+LDA #$FF
+
+AND #$AF
+AND #$4D
+AND #$02
+
+LDA #$ff
+
+; Setup: memory[0x0010] = 0x7f
+LDA #$7f
+STA $10
+LDA #$ff
+AND $10
+
+; Setup: memory[0x0014] = 0x3f
+LDA #$3f
+STA $14
+LDA #$7f
+AND $10,X
+
+; Setup: memory[$1234] = 0x1f
+LDA #$1f
+STA $1234
+LDA #$3f
+AND $1234
+
+; Setup: memory[$1238] = 0x0f
+LDA #$0f
+STA $1238
+LDA #$1f
+AND $1234,X
+
+; Setup: memory[$12d4] = 0x07
+LDA #$07
+STA $12d4
+LDA #$0f
+AND $1234,Y
+
+; Setup: ($20,X) → [$07, $07] = $0707 → memory[$0707] = 0x03
+STA $24
+STA $25
+LDA #$03
+STA $0707
+LDA #$07
+AND ($20,X)
+
+; Setup: ($20),Y → [$03, $03] = $0303 → memory[$0303 + Y] = 0x01
+STA $20
+STA $21
+LDA #$01
+STA $03a3
+LDA #$03
+AND ($20),Y
+     */
+
+    // AND #$AF
+    memory[pc++] = 0x29;
+    memory[pc++] = 0xaf;
+    // AND #$4D
+    memory[pc++] = 0x29;
+    memory[pc++] = 0x4d;
+    // AND #$02
+    memory[pc++] = 0x29;
+    memory[pc++] = 0x02;
+
+    // AND $10
+    memory[0x0010] = 0x7f;
+    memory[pc++] = 0x25;
+    memory[pc++] = 0x10;
+    // AND $10,X
+    memory[0x0014] = 0x3f;
+    memory[pc++] = 0x35;
+    memory[pc++] = 0x10;
+    // AND $1234
+    memory[0x1234] = 0x1f;
+    memory[pc++] = 0x2d;
+    memory[pc++] = 0x34;
+    memory[pc++] = 0x12;
+    // AND $1234,X
+    memory[0x1238] = 0x0f;
+    memory[pc++] = 0x3d;
+    memory[pc++] = 0x34;
+    memory[pc++] = 0x12;
+    // AND $1234,Y
+    memory[0x12d4] = 0x07;
+    memory[pc++] = 0x39;
+    memory[pc++] = 0x34;
+    memory[pc++] = 0x12;
+    // AND ($20,X)
+    memory[0x0024] = 0x07;
+    memory[0x0025] = 0x07;
+    memory[0x0707] = 0x03;
+    memory[pc++] = 0x21;
+    memory[pc++] = 0x20;
+    // AND ($20),Y
+    memory[0x0020] = 0x03;
+    memory[0x0021] = 0x03;
+    memory[0x03a3] = 0x01;
+    memory[pc++] = 0x31;
+    memory[pc++] = 0x20;
+
+    // Results
+    std::array<BYTE, 10> A = {0xaf, 0x0d, 0x00, 0x7f, 0x3f,
+                              0x1f, 0x0f, 0x07, 0x03, 0x01};
+    std::array<BYTE, 10> P = {0xb0, 0x30, 0x32, 0x30, 0x30,
+                              0x30, 0x30, 0x30, 0x30, 0x30};
+
+    CPU cpu(memory);
+    cpu.reset();
+
+    cpu.x = 0x04;
+    cpu.y = 0xa0;
+    cpu.a = 0xff;
+
+    for (int i = 0; i < 3; i++) {
+        BYTE opcode = cpu.fetch_opcode();
+        cpu.execute(opcode);
+        EXPECT_EQ(cpu.a, A[i]);
+        BYTE p = cpu.get_p();
+        EXPECT_EQ(p & 0x82, P[i] & 0x82);
+    }
+    cpu.a = 0xff;
+    int N = 7;
+    for (int i = 3; i < 3 + N; i++) {
+        BYTE opcode = cpu.fetch_opcode();
+        cpu.execute(opcode);
+        EXPECT_EQ(cpu.a, A[i]);
+        BYTE p = cpu.get_p();
+        EXPECT_EQ(p & 0x82, P[i] & 0x82);
     }
 }

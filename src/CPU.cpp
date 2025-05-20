@@ -824,7 +824,53 @@ void CPU::ADC(ADDRESSING_MODE mode, WORD operand) {
 }
 
 void CPU::AND(ADDRESSING_MODE mode, WORD operand) {
-    std::cerr << "Not Implemented\n";
+    BYTE rhs = 0x00;
+    switch (mode) {
+    case ADDRESSING_MODE::IMMEDIATE: {
+        rhs = operand & 0xff;
+    } break;
+    case ADDRESSING_MODE::ZEROPAGE: {
+        rhs = memory[operand];
+    } break;
+    case ADDRESSING_MODE::ZEROPAGE_X: {
+        rhs = memory[operand + x];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE: {
+        rhs = memory[operand];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE_X: {
+        rhs = memory[operand + x];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE_Y: {
+        rhs = memory[operand + y];
+    } break;
+    case ADDRESSING_MODE::INDIRECT_X: {
+        WORD addr = (operand + x) & 0xff;
+        addr = memory[addr] | (memory[addr + 1] << 8);
+        rhs = memory[addr];
+    } break;
+    case ADDRESSING_MODE::INDIRECT_Y: {
+        WORD addr = operand;
+        addr = memory[addr] | (memory[addr + 1] << 8);
+        addr = addr + y;
+        rhs = memory[addr];
+    } break;
+    case ADDRESSING_MODE::ACCUMULATOR:
+    case ADDRESSING_MODE::IMPLICIT:
+    case ADDRESSING_MODE::RELATIVE:
+    case ADDRESSING_MODE::INVALID: {
+        // TODO: add assert
+    } break;
+    default:
+        break;
+    }
+
+    BYTE new_a = rhs & a;
+
+    z = new_a == 0 ? 1 : 0;
+    n = (new_a >> 7) & 0x1;
+
+    a = new_a;
 }
 
 void CPU::ASL(ADDRESSING_MODE mode, WORD operand) {
