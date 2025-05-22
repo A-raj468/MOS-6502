@@ -282,3 +282,119 @@ AND ($20),Y
         EXPECT_EQ(p & 0x82, P[i] & 0x82);
     }
 }
+
+TEST(TEST_INSTRUCTIONS, ASL) {
+    mem_t memory;
+
+    WORD start = 0x8000;
+    memory[0xfffc] = start & 0xff;
+    memory[0xfffd] = (start >> 8) & 0xff;
+
+    WORD pc = start;
+
+    /* Assembly to be tested
+LDX #$04
+
+LDA #$40
+
+ASL A
+ASL A
+
+; Setup: memory[0x0010] = 0x55
+LDA #$55
+STA $10
+ASL $10
+LDA $10
+
+; Setup: memory[0x0014] = 0xaa
+STA $10,X
+ASL $10,X
+LDA $10,X
+
+; Setup: memory[$1234] = 0x54
+STA $1234
+ASL $1234
+LDA $1234
+
+; Setup: memory[$1238] = 0xa8
+STA $1234,X
+ASL $1234,X
+LDA $1234,X
+     */
+
+    // AND #$AF
+    memory[pc++] = 0x29;
+    memory[pc++] = 0xaf;
+    // AND #$4D
+    memory[pc++] = 0x29;
+    memory[pc++] = 0x4d;
+    // AND #$02
+    memory[pc++] = 0x29;
+    memory[pc++] = 0x02;
+
+    // AND $10
+    memory[0x0010] = 0x7f;
+    memory[pc++] = 0x25;
+    memory[pc++] = 0x10;
+    // AND $10,X
+    memory[0x0014] = 0x3f;
+    memory[pc++] = 0x35;
+    memory[pc++] = 0x10;
+    // AND $1234
+    memory[0x1234] = 0x1f;
+    memory[pc++] = 0x2d;
+    memory[pc++] = 0x34;
+    memory[pc++] = 0x12;
+    // AND $1234,X
+    memory[0x1238] = 0x0f;
+    memory[pc++] = 0x3d;
+    memory[pc++] = 0x34;
+    memory[pc++] = 0x12;
+    // AND $1234,Y
+    memory[0x12d4] = 0x07;
+    memory[pc++] = 0x39;
+    memory[pc++] = 0x34;
+    memory[pc++] = 0x12;
+    // AND ($20,X)
+    memory[0x0024] = 0x07;
+    memory[0x0025] = 0x07;
+    memory[0x0707] = 0x03;
+    memory[pc++] = 0x21;
+    memory[pc++] = 0x20;
+    // AND ($20),Y
+    memory[0x0020] = 0x03;
+    memory[0x0021] = 0x03;
+    memory[0x03a3] = 0x01;
+    memory[pc++] = 0x31;
+    memory[pc++] = 0x20;
+
+    // Results
+    std::array<BYTE, 10> A = {0xaf, 0x0d, 0x00, 0x7f, 0x3f,
+                              0x1f, 0x0f, 0x07, 0x03, 0x01};
+    std::array<BYTE, 10> P = {0xb0, 0x30, 0x32, 0x30, 0x30,
+                              0x30, 0x30, 0x30, 0x30, 0x30};
+
+    CPU cpu(memory);
+    cpu.reset();
+
+    cpu.x = 0x04;
+    cpu.y = 0xa0;
+    cpu.a = 0xff;
+
+    for (int i = 0; i < 3; i++) {
+        BYTE opcode = cpu.fetch_opcode();
+        cpu.execute(opcode);
+        EXPECT_EQ(cpu.a, A[i]);
+        BYTE p = cpu.get_p();
+        EXPECT_EQ(p & 0x82, P[i] & 0x82);
+    }
+    cpu.a = 0xff;
+    int N = 7;
+    for (int i = 3; i < 3 + N; i++) {
+        BYTE opcode = cpu.fetch_opcode();
+        cpu.execute(opcode);
+        EXPECT_EQ(cpu.a, A[i]);
+        BYTE p = cpu.get_p();
+        EXPECT_EQ(p & 0x82, P[i] & 0x82);
+    }
+}

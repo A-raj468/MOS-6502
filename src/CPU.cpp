@@ -781,7 +781,8 @@ void CPU::ADC(ADDRESSING_MODE mode, WORD operand) {
         rhs = memory[operand];
     } break;
     case ADDRESSING_MODE::ZEROPAGE_X: {
-        rhs = memory[operand + x];
+        WORD addr = (operand + x) & 0xff;
+        rhs = memory[addr];
     } break;
     case ADDRESSING_MODE::ABSOLUTE: {
         rhs = memory[operand];
@@ -833,7 +834,8 @@ void CPU::AND(ADDRESSING_MODE mode, WORD operand) {
         rhs = memory[operand];
     } break;
     case ADDRESSING_MODE::ZEROPAGE_X: {
-        rhs = memory[operand + x];
+        WORD addr = (operand + x) & 0xff;
+        rhs = memory[addr];
     } break;
     case ADDRESSING_MODE::ABSOLUTE: {
         rhs = memory[operand];
@@ -874,7 +876,43 @@ void CPU::AND(ADDRESSING_MODE mode, WORD operand) {
 }
 
 void CPU::ASL(ADDRESSING_MODE mode, WORD operand) {
-    std::cerr << "Not Implemented\n";
+    BYTE *rhs = nullptr;
+    switch (mode) {
+    case ADDRESSING_MODE::ACCUMULATOR: {
+        rhs = &a;
+    } break;
+    case ADDRESSING_MODE::ZEROPAGE: {
+        rhs = &memory[operand];
+    } break;
+    case ADDRESSING_MODE::ZEROPAGE_X: {
+        WORD addr = (operand + x) & 0xff;
+        rhs = &memory[addr];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE: {
+        rhs = &memory[operand];
+    } break;
+    case ADDRESSING_MODE::ABSOLUTE_X: {
+        rhs = &memory[operand + x];
+    } break;
+    case ADDRESSING_MODE::IMMEDIATE:
+    case ADDRESSING_MODE::ABSOLUTE_Y:
+    case ADDRESSING_MODE::INDIRECT_X:
+    case ADDRESSING_MODE::INDIRECT_Y:
+    case ADDRESSING_MODE::IMPLICIT:
+    case ADDRESSING_MODE::RELATIVE:
+    case ADDRESSING_MODE::INVALID: {
+        // TODO: add assert
+    } break;
+    default:
+        break;
+    }
+
+    if (rhs != nullptr) {
+        c = (*rhs >> 7) & 0x1;
+        *rhs = *rhs << 1;
+        z = (*rhs == 0) ? 1 : 0;
+        n = (*rhs >> 7) & 0x1;
+    }
 }
 
 void CPU::BCC(ADDRESSING_MODE mode, WORD operand) {
